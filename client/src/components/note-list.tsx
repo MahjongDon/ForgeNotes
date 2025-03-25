@@ -37,7 +37,7 @@ export default function NoteList({
 
   return (
     <div 
-      className={`w-64 lg:w-72 border-r border-gray-200 dark:border-gray-700 flex flex-col 
+      className={`w-72 lg:w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col 
                 overflow-hidden bg-white dark:bg-gray-900 h-full transition-all duration-200
                 ${isMobile ? "absolute inset-y-0 left-0 z-10" : "relative"}
                 ${(isMobile && !isOpen) ? "-translate-x-full" : "translate-x-0"}`}

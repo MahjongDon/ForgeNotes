@@ -51,8 +51,11 @@ export default function Preview({ note, notes, onNoteClick }: PreviewProps) {
   }, [note.content, notes, onNoteClick]);
   
   return (
-    <ScrollArea className="w-full p-6 markdown-content text-gray-800 dark:text-gray-200">
-      <div ref={previewRef} className="prose dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-blockquote:border-l-primary-500"></div>
+    <ScrollArea className="w-full p-8 markdown-content text-gray-800 dark:text-gray-200">
+      <div 
+        ref={previewRef} 
+        className="prose dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-blockquote:border-l-primary prose-a:text-primary dark:prose-a:text-primary prose-headings:text-gray-900 dark:prose-headings:text-gray-100"
+      ></div>
     </ScrollArea>
   );
 }

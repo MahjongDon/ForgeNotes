@@ -237,7 +237,7 @@ export default function Home() {
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="flex flex-col md:flex-row h-full">
-                <div className="flex-1 border-r border-gray-200 dark:border-gray-700">
+                <div className="w-full md:w-1/2 border-r border-gray-200 dark:border-gray-700">
                   <Editor
                     note={activeNote}
                     folders={folders}
@@ -247,7 +247,7 @@ export default function Home() {
                     isMobile={isMobile}
                   />
                 </div>
-                <div className="flex-1">
+                <div className="w-full md:w-1/2">
                   <Preview
                     note={activeNote}
                     notes={notes}

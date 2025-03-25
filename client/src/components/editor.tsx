@@ -196,11 +196,11 @@ export default function Editor({
       
       {/* Editor Content */}
       <div className="flex-1 flex overflow-hidden divide-x divide-gray-200 dark:divide-gray-700">
-        <ScrollArea className="w-full p-4">
+        <ScrollArea className="w-full p-5">
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200"
+            className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200 text-base leading-relaxed"
             placeholder="Start writing with Markdown..."
           />
         </ScrollArea>
