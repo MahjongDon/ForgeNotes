@@ -72,6 +72,8 @@ export default function Editor({
 }: EditorProps) {
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
+  const [activeTab, setActiveTab] = useState<string>("edit");
+  const previewRef = useRef<HTMLDivElement>(null);
   
   // Update local state when note changes
   useEffect(() => {
@@ -105,9 +107,6 @@ export default function Editor({
   const moveToFolder = (folderId: number) => {
     onNoteChange({ folderId });
   };
-  
-  const [activeTab, setActiveTab] = useState<string>("edit");
-  const previewRef = useRef<HTMLDivElement>(null);
   
   // Handle preview rendering
   useEffect(() => {
@@ -161,7 +160,29 @@ export default function Editor({
             placeholder="Note title..."
           />
         </div>
-        <div className="flex space-x-1">
+        <div className="flex items-center space-x-1">
+          {/* Edit/Preview Toggle Buttons */}
+          <div className="flex bg-muted rounded-md p-0.5 mr-3">
+            <Button 
+              variant={activeTab === "edit" ? "secondary" : "ghost"} 
+              size="sm"
+              className="flex items-center gap-1 h-7 px-2.5 rounded-sm"
+              onClick={() => setActiveTab("edit")}
+            >
+              <Edit className="h-3.5 w-3.5" />
+              <span className="text-xs">Edit</span>
+            </Button>
+            <Button 
+              variant={activeTab === "preview" ? "secondary" : "ghost"}
+              size="sm" 
+              className="flex items-center gap-1 h-7 px-2 rounded-sm"
+              onClick={() => setActiveTab("preview")}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span className="text-xs">Preview</span>
+            </Button>
+          </div>
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -248,49 +269,29 @@ export default function Editor({
         </div>
       </div>
       
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <Tabs defaultValue="edit" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex items-center px-4">
-            <TabsList>
-              <TabsTrigger value="edit" className="flex items-center gap-1.5">
-                <Edit className="h-4 w-4" />
-                <span>Edit</span>
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="flex items-center gap-1.5">
-                <Eye className="h-4 w-4" />
-                <span>Preview</span>
-              </TabsTrigger>
-            </TabsList>
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {activeTab === "edit" ? (
+          <div className="flex-1 overflow-hidden h-[calc(100vh-160px)]">
+            <ScrollArea className="w-full p-5 h-full">
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200 text-base leading-relaxed"
+                placeholder="Start writing with Markdown..."
+              />
+            </ScrollArea>
           </div>
-          
-          {/* Tab Content */}
-          <div className="flex-1 overflow-hidden">
-            <TabsContent value="edit" className="mt-0 border-0 p-0 h-full">
-              <div className="flex-1 overflow-hidden h-[calc(100vh-210px)]">
-                <ScrollArea className="w-full p-5 h-full">
-                  <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200 text-base leading-relaxed"
-                    placeholder="Start writing with Markdown..."
-                  />
-                </ScrollArea>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="preview" className="mt-0 border-0 p-0 h-full">
-              <div className="flex-1 overflow-hidden h-[calc(100vh-210px)]">
-                <ScrollArea className="w-full p-8 h-full">
-                  <div 
-                    ref={previewRef} 
-                    className="prose dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-blockquote:border-l-primary prose-a:text-primary dark:prose-a:text-primary prose-headings:text-gray-900 dark:prose-headings:text-gray-100"
-                  ></div>
-                </ScrollArea>
-              </div>
-            </TabsContent>
+        ) : (
+          <div className="flex-1 overflow-hidden h-[calc(100vh-160px)]">
+            <ScrollArea className="w-full p-8 h-full">
+              <div 
+                ref={previewRef} 
+                className="prose dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-blockquote:border-l-primary prose-a:text-primary dark:prose-a:text-primary prose-headings:text-gray-900 dark:prose-headings:text-gray-100"
+              ></div>
+            </ScrollArea>
           </div>
-        </Tabs>
+        )}
       </div>
       
       {/* Status Bar */}
