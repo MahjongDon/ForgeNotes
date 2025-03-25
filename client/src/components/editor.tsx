@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Note, Folder } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDate, formatTime, getWordCount } from "@/lib/markdown";
+import { formatDate, formatTime, getWordCount, renderMarkdown, processBacklinks } from "@/lib/markdown";
 import {
   ChevronLeft,
   Trash2,
@@ -14,6 +14,8 @@ import {
   FolderClosed,
   Copy,
   FileDown,
+  Eye,
+  Edit,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -33,23 +35,40 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+
+// Extend Window interface to include our custom property
+declare global {
+  interface Window {
+    noteClickHandler?: (id: number) => void;
+  }
+}
 
 interface EditorProps {
   note: Note;
   folders: Folder[];
+  notes: Note[]; // Added for backlink support
   onNoteChange: (note: Partial<Note>) => void;
   onDeleteNote: (id: number) => void;
   onToggleNoteList: () => void;
   isMobile: boolean;
+  onNoteClick: (id: number) => void; // Added for backlink support
 }
 
 export default function Editor({
   note,
   folders,
+  notes,
   onNoteChange,
   onDeleteNote,
   onToggleNoteList,
   isMobile,
+  onNoteClick,
 }: EditorProps) {
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
@@ -86,6 +105,41 @@ export default function Editor({
   const moveToFolder = (folderId: number) => {
     onNoteChange({ folderId });
   };
+  
+  const [activeTab, setActiveTab] = useState<string>("edit");
+  const previewRef = useRef<HTMLDivElement>(null);
+  
+  // Handle preview rendering
+  useEffect(() => {
+    if (activeTab === "preview" && previewRef.current) {
+      const html = renderMarkdown(content);
+      const processedHtml = processBacklinks(html, notes, onNoteClick);
+      previewRef.current.innerHTML = processedHtml;
+      
+      // Add click handlers to all backlinks
+      const backlinks = previewRef.current.querySelectorAll('a[data-note-id]');
+      backlinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const noteId = parseInt((e.currentTarget as HTMLAnchorElement).dataset.noteId || "0", 10);
+          if (noteId) {
+            onNoteClick(noteId);
+          }
+        });
+      });
+    }
+  }, [content, activeTab, notes, onNoteClick]);
+  
+  // Add global handler for backlink clicks
+  useEffect(() => {
+    window.noteClickHandler = (id: number) => {
+      onNoteClick(id);
+    };
+    
+    return () => {
+      window.noteClickHandler = undefined;
+    };
+  }, [onNoteClick]);
   
   return (
     <div className="flex flex-col h-full">
@@ -194,16 +248,49 @@ export default function Editor({
         </div>
       </div>
       
-      {/* Editor Content */}
-      <div className="flex-1 flex overflow-hidden divide-x divide-gray-200 dark:divide-gray-700">
-        <ScrollArea className="w-full p-5">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200 text-base leading-relaxed"
-            placeholder="Start writing with Markdown..."
-          />
-        </ScrollArea>
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <Tabs defaultValue="edit" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex items-center px-4">
+            <TabsList>
+              <TabsTrigger value="edit" className="flex items-center gap-1.5">
+                <Edit className="h-4 w-4" />
+                <span>Edit</span>
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="flex items-center gap-1.5">
+                <Eye className="h-4 w-4" />
+                <span>Preview</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {/* Tab Content */}
+          <div className="flex-1 overflow-hidden">
+            <TabsContent value="edit" className="mt-0 border-0 p-0 h-full">
+              <div className="flex-1 overflow-hidden h-[calc(100vh-210px)]">
+                <ScrollArea className="w-full p-5 h-full">
+                  <Textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200 text-base leading-relaxed"
+                    placeholder="Start writing with Markdown..."
+                  />
+                </ScrollArea>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="preview" className="mt-0 border-0 p-0 h-full">
+              <div className="flex-1 overflow-hidden h-[calc(100vh-210px)]">
+                <ScrollArea className="w-full p-8 h-full">
+                  <div 
+                    ref={previewRef} 
+                    className="prose dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-blockquote:border-l-primary prose-a:text-primary dark:prose-a:text-primary prose-headings:text-gray-900 dark:prose-headings:text-gray-100"
+                  ></div>
+                </ScrollArea>
+              </div>
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
       
       {/* Status Bar */}
