@@ -236,20 +236,25 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden">
-              <Editor
-                note={activeNote}
-                folders={folders}
-                onNoteChange={(updates) => handleNoteChange(activeNote.id, updates)}
-                onDeleteNote={handleDeleteNote}
-                onToggleNoteList={() => setNoteListOpen(true)}
-                isMobile={isMobile}
-              />
-              
-              <Preview
-                note={activeNote}
-                notes={notes}
-                onNoteClick={handleNoteClick}
-              />
+              <div className="flex flex-col md:flex-row h-full">
+                <div className="flex-1 border-r border-gray-200 dark:border-gray-700">
+                  <Editor
+                    note={activeNote}
+                    folders={folders}
+                    onNoteChange={(updates) => handleNoteChange(activeNote.id, updates)}
+                    onDeleteNote={handleDeleteNote}
+                    onToggleNoteList={() => setNoteListOpen(true)}
+                    isMobile={isMobile}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Preview
+                    note={activeNote}
+                    notes={notes}
+                    onNoteClick={handleNoteClick}
+                  />
+                </div>
+              </div>
             </div>
           )}
           

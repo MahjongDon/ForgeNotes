@@ -196,7 +196,7 @@ export default function Editor({
       
       {/* Editor Content */}
       <div className="flex-1 flex overflow-hidden divide-x divide-gray-200 dark:divide-gray-700">
-        <ScrollArea className="w-1/2 p-4">
+        <ScrollArea className="w-full p-4">
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
