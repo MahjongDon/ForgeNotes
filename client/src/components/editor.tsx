@@ -74,14 +74,33 @@ export default function Editor({
 }: EditorProps) {
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
-  const [activeTab, setActiveTab] = useState<string>("edit");
+  const [activeTab, setActiveTab] = useState<string>("preview");
   const previewRef = useRef<HTMLDivElement>(null);
   
   // Update local state when note changes
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
-  }, [note.id, note.title, note.content]);
+    
+    // Force preview to render immediately when note changes
+    if (previewRef.current) {
+      const html = renderMarkdown(note.content);
+      const processedHtml = processBacklinks(html, notes, onNoteClick);
+      previewRef.current.innerHTML = processedHtml;
+      
+      // Add click handlers to all backlinks
+      const backlinks = previewRef.current.querySelectorAll('a[data-note-id]');
+      backlinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const noteId = parseInt((e.currentTarget as HTMLAnchorElement).dataset.noteId || "0", 10);
+          if (noteId) {
+            onNoteClick(noteId);
+          }
+        });
+      });
+    }
+  }, [note.id, note.title, note.content, notes, onNoteClick]);
   
   // Debounce title changes
   useEffect(() => {
