@@ -17,6 +17,27 @@ function Router() {
     // This ensures our router takes into account any hash in the URL on initial load
     setForceUpdate({});
     
+    // Special handling for direct access on Netlify
+    const handleNetlifyDirectAccess = () => {
+      // Check if this is a direct access URL (no hash) on Netlify
+      // If accessing a path like /notes/123 directly on Netlify (or any static host)
+      // we should replace it with a hash route
+      const pathname = window.location.pathname;
+      if (pathname !== '/' && !window.location.hash) {
+        // Store the path for navigation after redirect
+        sessionStorage.setItem('redirectPath', pathname);
+        // Redirect to the root with the hash
+        window.location.replace(`${window.location.origin}/#${pathname}`);
+        return true;
+      }
+      return false;
+    };
+    
+    // If we handled a direct Netlify access, no need to continue
+    if (handleNetlifyDirectAccess()) {
+      return;
+    }
+    
     // Determine base path for subdomain routing
     const getBasePath = () => {
       // Get the URL pathname

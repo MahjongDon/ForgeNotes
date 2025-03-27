@@ -121,6 +121,15 @@ const notFoundHtml = `<!DOCTYPE html>
 
 fs.writeFileSync(path.join(staticDistDir, '404.html'), notFoundHtml);
 
+// Step 6b: Create Netlify configuration files
+console.log('Creating Netlify configuration files...');
+
+// Create _redirects file for Netlify
+fs.writeFileSync(
+  path.join(staticDistDir, '_redirects'),
+  '/* /index.html 200'
+);
+
 // Step 7: Create a simple static server file (optional for local testing)
 console.log('Creating static server file...');
 const serverContent = `
