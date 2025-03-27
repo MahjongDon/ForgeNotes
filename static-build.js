@@ -50,6 +50,46 @@ copyDir(publicDir, staticDistDir);
 // Step 5: Add .nojekyll file for GitHub Pages to prevent Jekyll processing
 fs.writeFileSync(path.join(staticDistDir, '.nojekyll'), '');
 
+// Step 5b: Update index.html to handle subdomain deployments
+const indexHtmlPath = path.join(staticDistDir, 'index.html');
+let indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
+
+// Add base path configurator script
+indexHtml = indexHtml.replace(
+  '<head>',
+  `<head>
+  <base href="./">
+  <script>
+    // Configure the app for GitHub Pages/subdomain deployment
+    window.staticDeployment = true;
+    
+    // Handle subdomain base path detection for GitHub Pages
+    (function() {
+      // Get the path segments to determine if we're on a subdomain
+      const pathSegments = window.location.pathname.split('/');
+      
+      // If we're on a subdomain with a repo name (GitHub Pages)
+      if (pathSegments.length > 1 && pathSegments[1] !== '') {
+        // Tell the app we're on a subdomain
+        window.onSubdomain = true;
+        window.subdomainPath = '/' + pathSegments[1] + '/';
+        
+        // If this isn't a redirect from 404.html, we need to set up hash routing
+        if (!sessionStorage.getItem('redirectPath') && window.location.hash === '') {
+          // Convert path to hash route for proper navigation
+          const path = window.location.pathname.replace(window.subdomainPath, '');
+          if (path && path !== '/') {
+            window.location.replace(window.location.origin + window.subdomainPath + '#' + path);
+          }
+        }
+      }
+    })();
+  </script>`
+);
+
+// Save the updated index.html
+fs.writeFileSync(indexHtmlPath, indexHtml);
+
 // Step 6: Create a 404.html that redirects to index.html for GitHub Pages
 const notFoundHtml = `<!DOCTYPE html>
 <html>
@@ -57,9 +97,21 @@ const notFoundHtml = `<!DOCTYPE html>
     <meta charset="utf-8">
     <title>ForgeNotes</title>
     <script>
-      // Redirect to the main page while preserving the URL
+      // Get the repository name from the URL to handle subdomain deployments
+      const pathSegments = window.location.pathname.split('/');
+      let basePath = '/';
+      
+      // If we're on GitHub Pages with a repo name path or on another subdomain
+      if (pathSegments.length > 1 && pathSegments[1] !== '') {
+        // For GitHub Pages format: /repo-name/...
+        basePath = '/' + pathSegments[1] + '/';
+      }
+      
+      // Store the attempted path in session storage
       sessionStorage.setItem('redirectPath', window.location.pathname);
-      window.location.href = '/';
+      
+      // Redirect to the main page with correct base path
+      window.location.href = basePath;
     </script>
   </head>
   <body>

@@ -17,8 +17,37 @@ function Router() {
     // This ensures our router takes into account any hash in the URL on initial load
     setForceUpdate({});
     
+    // Determine base path for subdomain routing
+    const getBasePath = () => {
+      // Get the URL pathname
+      let pathname = window.location.pathname;
+      
+      // If pathname is not just '/', use it as the base
+      if (pathname !== '/' && !pathname.endsWith('.html')) {
+        // Make sure it ends with a slash
+        if (!pathname.endsWith('/')) {
+          pathname += '/';
+        }
+        return pathname;
+      }
+      
+      return '/';
+    };
+    
+    const base = getBasePath();
+    
+    // Check if we were redirected from a 404 page
+    const redirectPath = sessionStorage.getItem('redirectPath');
+    if (redirectPath) {
+      // Convert the path to a hash-based route
+      const hashPath = "#" + redirectPath;
+      // Clear the stored path
+      sessionStorage.removeItem('redirectPath');
+      // Update the URL to use the hash
+      window.location.hash = hashPath;
+    } 
     // Set initial hash if none exists (for GitHub Pages compatibility)
-    if (!window.location.hash && window.location.pathname === "/") {
+    else if (!window.location.hash) {
       window.location.hash = "#/";
     }
     
@@ -27,10 +56,17 @@ function Router() {
       setForceUpdate({});
     };
     
+    // Store the base path in localStorage for consistency
+    localStorage.setItem('forgeNotesBasePath', base);
+    
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
+
+  // Use the currentPath from hash
+  const currentPath = window.location.hash.replace('#', '') || '/';
   
+  // Wouter's Switch doesn't accept a base prop, so we'll adapt our routing approach
   return (
     <Switch>
       <Route path="/" component={Home} />

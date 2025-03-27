@@ -4,6 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ForgeNotes - Minimal Markdown Note Taking</title>
+  <base href="./">
+  <script>
+    // Configure the app for static deployment
+    window.staticDeployment = true;
+    
+    // Handle subdomain base path detection for GitHub Pages
+    (function() {
+      // Get the path segments to determine if we're on a subdomain
+      const pathSegments = window.location.pathname.split('/');
+      
+      // If we're on a subdomain with a repo name (GitHub Pages)
+      if (pathSegments.length > 1 && pathSegments[1] !== '') {
+        // Tell the app we're on a subdomain
+        window.onSubdomain = true;
+        window.subdomainPath = '/' + pathSegments[1] + '/';
+        
+        // If this isn't a redirect from 404.html, we need to set up hash routing
+        if (!sessionStorage.getItem('redirectPath') && window.location.hash === '') {
+          // Convert path to hash route for proper navigation
+          const path = window.location.pathname.replace(window.subdomainPath, '');
+          if (path && path !== '/') {
+            window.location.replace(window.location.origin + window.subdomainPath + '#' + path);
+          }
+        }
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
