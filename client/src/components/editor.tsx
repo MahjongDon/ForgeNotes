@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Note, Folder } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { AnimatedButton } from "@/components/ui/animated-button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDate, formatTime, getWordCount, renderMarkdown, processBacklinks } from "@/lib/markdown";
+import { useAnimation } from "@/hooks/use-animation";
 import {
   ChevronLeft,
   Trash2,
@@ -145,14 +147,16 @@ export default function Editor({
       {/* Editor Toolbar */}
       <div className="border-b border-gray-200 dark:border-gray-700 p-3 flex justify-between items-center">
         <div className="flex items-center">
-          <Button
+          <AnimatedButton
             variant="ghost"
             size="icon"
             className="md:block lg:hidden mr-2"
             onClick={onToggleNoteList}
+            rippleEffect={true}
+            hoverScale={true}
           >
             <ChevronLeft className="h-4 w-4" />
-          </Button>
+          </AnimatedButton>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -163,33 +167,40 @@ export default function Editor({
         <div className="flex items-center space-x-1">
           {/* Edit/Preview Toggle Buttons */}
           <div className="flex bg-muted rounded-md p-0.5 mr-3">
-            <Button 
+            <AnimatedButton 
               variant={activeTab === "edit" ? "secondary" : "ghost"} 
               size="sm"
               className="flex items-center gap-1 h-7 px-2.5 rounded-sm"
               onClick={() => setActiveTab("edit")}
+              rippleEffect={true}
             >
               <Edit className="h-3.5 w-3.5" />
               <span className="text-xs">Edit</span>
-            </Button>
-            <Button 
+            </AnimatedButton>
+            <AnimatedButton 
               variant={activeTab === "preview" ? "secondary" : "ghost"}
               size="sm" 
               className="flex items-center gap-1 h-7 px-2 rounded-sm"
               onClick={() => setActiveTab("preview")}
+              rippleEffect={true}
             >
               <Eye className="h-3.5 w-3.5" />
               <span className="text-xs">Preview</span>
-            </Button>
+            </AnimatedButton>
           </div>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <AnimatedButton 
+                variant="ghost" 
+                size="icon"
+                rippleEffect={true}
+                className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+              >
                 <Trash2 className="h-4 w-4" />
-              </Button>
+              </AnimatedButton>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="animate-scale-in">
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Note</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -208,15 +219,23 @@ export default function Editor({
             </AlertDialogContent>
           </AlertDialog>
 
-          <Button variant="ghost" size="icon">
+          <AnimatedButton 
+            variant="ghost" 
+            size="icon"
+            rippleEffect={true}
+          >
             <Share className="h-4 w-4" />
-          </Button>
+          </AnimatedButton>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <AnimatedButton 
+                variant="ghost" 
+                size="icon"
+                rippleEffect={true}
+              >
                 <MoreVertical className="h-4 w-4" />
-              </Button>
+              </AnimatedButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
@@ -271,27 +290,42 @@ export default function Editor({
       
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        {activeTab === "edit" ? (
-          <div className="flex-1 overflow-hidden h-[calc(100vh-160px)]">
-            <ScrollArea className="w-full p-5 h-full">
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200 text-base leading-relaxed"
-                placeholder="Start writing with Markdown..."
-              />
-            </ScrollArea>
+        <div className="relative w-full h-full">
+          <div 
+            className={`absolute inset-0 transition-opacity duration-200 ${
+              activeTab === "edit" ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
+          >
+            <div className="flex-1 overflow-hidden h-[calc(100vh-160px)]">
+              <ScrollArea className="w-full p-5 h-full">
+                <Textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="w-full h-full p-0 border-0 bg-transparent focus-visible:ring-0 resize-none font-mono text-gray-800 dark:text-gray-200 text-base leading-relaxed"
+                  placeholder="Start writing with Markdown..."
+                  disabled={activeTab !== "edit"}
+                />
+              </ScrollArea>
+            </div>
           </div>
-        ) : (
-          <div className="flex-1 overflow-hidden h-[calc(100vh-160px)]">
-            <ScrollArea className="w-full p-8 h-full">
-              <div 
-                ref={previewRef} 
-                className="prose dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-blockquote:border-l-primary prose-a:text-primary dark:prose-a:text-primary prose-headings:text-gray-900 dark:prose-headings:text-gray-100"
-              ></div>
-            </ScrollArea>
+          
+          <div 
+            className={`absolute inset-0 transition-opacity duration-200 ${
+              activeTab === "preview" ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
+          >
+            <div className="flex-1 overflow-hidden h-[calc(100vh-160px)]">
+              <ScrollArea className="w-full p-8 h-full">
+                <div 
+                  ref={previewRef} 
+                  className={`prose dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-blockquote:border-l-primary prose-a:text-primary dark:prose-a:text-primary prose-headings:text-gray-900 dark:prose-headings:text-gray-100 ${
+                    activeTab === "preview" ? "animate-fade-in" : ""
+                  }`}
+                ></div>
+              </ScrollArea>
+            </div>
           </div>
-        )}
+        </div>
       </div>
       
       {/* Status Bar */}
